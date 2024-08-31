@@ -28,16 +28,10 @@ jobs:
         run: |
           dvc repro
           git fetch --prune
-          # git branch -r | grep -v '\->' | while read -r branch; do git branch --track "${branch#origin/}" "$branch"; done
-          # git pull --all
-          # git branch
-          # git checkout main
-          # git pull origin main
 
           # Get the report
           echo "## Metrics" > report.md
-          dvc metrics --md diff main >> report.md
-          
+          dvc metrics diff main >> report.md
 
           echo "## Confusion Matrix" >> report.md
           echo "![](./conf_matrix.png)" >> report.md
