@@ -1,0 +1,38 @@
+stages:
+  prepare:
+    cmd: python data_prep.py
+    deps:
+      - data_prep.py
+      - dataset.csv
+    outs:
+      - outs/dataset_cleaned.csv
+
+
+  process:
+    cmd: python data_process.py
+    deps:
+      - data_process.py
+      - outs/dataset_cleaned.csv
+    outs:
+      - outs/processed_X_train.csv
+      - outs/processed_X_test.csv
+      - outs/processed_y_train.csv
+      - outs/processed_y_test.csv
+
+  train:
+    cmd: python data_train.py
+    deps:
+      - data_train.py
+      - outs/processed_X_train.csv
+      - outs/processed_X_test.csv
+      - outs/processed_y_train.csv
+      - outs/processed_y_test.csv
+    outs:
+      - conf_matrix.png
+
+    metrics:
+      - metrics.json:
+          cache: False
+
+  # evaluate:
+  

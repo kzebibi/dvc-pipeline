@@ -1,0 +1,78 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python data_prep.py
+    deps:
+    - path: data_prep.py
+      hash: md5
+      md5: ac637c9f69776956b0c34253cbe5af06
+      size: 573
+    - path: dataset.csv
+      hash: md5
+      md5: 496aee8fbfdfa1dfb6daa9dbca5d1a01
+      size: 684858
+    outs:
+    - path: outs/dataset_cleaned.csv
+      hash: md5
+      md5: 883886ae55d2deb5b1128a5bc40eea4d
+      size: 478635
+  process:
+    cmd: python data_process.py
+    deps:
+    - path: data_process.py
+      hash: md5
+      md5: 70e8a27c9cc5b61ab742e15f1c1dcbec
+      size: 2869
+    - path: outs/dataset_cleaned.csv
+      hash: md5
+      md5: 883886ae55d2deb5b1128a5bc40eea4d
+      size: 478635
+    outs:
+    - path: outs/processed_X_test.csv
+      hash: md5
+      md5: 84f5c89d6771296a199d045f4044917f
+      size: 214722
+    - path: outs/processed_X_train.csv
+      hash: md5
+      md5: abb3c09ea052cceee3aaa86a02e1aa46
+      size: 858656
+    - path: outs/processed_y_test.csv
+      hash: md5
+      md5: 4973c310e51383dd6a3f2026894cfc7b
+      size: 6002
+    - path: outs/processed_y_train.csv
+      hash: md5
+      md5: 0abd5b4de1e848f1c2eaf6e9fd53eced
+      size: 23978
+  train:
+    cmd: python data_train.py
+    deps:
+    - path: data_train.py
+      hash: md5
+      md5: ca468c8af4d26c1aed175b88e7b8ca8d
+      size: 4743
+    - path: outs/processed_X_test.csv
+      hash: md5
+      md5: 84f5c89d6771296a199d045f4044917f
+      size: 214722
+    - path: outs/processed_X_train.csv
+      hash: md5
+      md5: abb3c09ea052cceee3aaa86a02e1aa46
+      size: 858656
+    - path: outs/processed_y_test.csv
+      hash: md5
+      md5: 4973c310e51383dd6a3f2026894cfc7b
+      size: 6002
+    - path: outs/processed_y_train.csv
+      hash: md5
+      md5: 0abd5b4de1e848f1c2eaf6e9fd53eced
+      size: 23978
+    outs:
+    - path: conf_matrix.png
+      hash: md5
+      md5: f9362d448ad08b3d18eb1ff53c46a9d6
+      size: 134731
+    - path: metrics.json
+      hash: md5
+      md5: 691d9aaf53fdb673af3143bb37fdf6d5
+      size: 339
