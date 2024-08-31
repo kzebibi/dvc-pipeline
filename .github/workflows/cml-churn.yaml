@@ -20,18 +20,24 @@ jobs:
           # Your ML workflow goes here
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          python script.py
+
 
       - name: Generate Report
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          dvc repro
+          git fetch --prune
+          # git branch -r | grep -v '\->' | while read -r branch; do git branch --track "${branch#origin/}" "$branch"; done
+          # git pull --all
+          # git branch
+          # git checkout main
+          # git pull origin main
 
           # Get the report
           echo "## Metrics" > report.md
-          # cat metrics.txt >> report.md
+          dvc metrics --md diff main >> report.md
           
-          awk 'NR%4{print "    " $0}{print ""}' metrics.txt >> report.md
 
           echo "## Confusion Matrix" >> report.md
           echo "![](./conf_matrix.png)" >> report.md
