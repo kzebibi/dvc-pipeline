@@ -9,7 +9,9 @@
 ```bash
 git add .
 git commit -m "Initial commit"
-git push
+git branch -M main
+git remote add origin https://github.com/kzebibi/dvc-pipeline.git
+git push --set-upstream origin main
 ```
 ### DVC Commands
 
