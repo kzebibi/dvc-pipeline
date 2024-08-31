@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, f1_score, accuracy_score
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 from PIL import Image
 import json
 import pandas as pd
@@ -53,7 +54,8 @@ def train_model(X_train, y_train, plot_name='', class_weight=None):
     
     global clf_name
 
-    clf = RandomForestClassifier(n_estimators=200, max_depth=15, random_state=45, class_weight=class_weight)
+    clf = LogisticRegression(c=2.5, random_state=53, n_jobs=-1, max_iter=10000, class_weight=class_weight)
+    # clf = RandomForestClassifier(n_estimators=200, max_depth=15, random_state=45, class_weight=class_weight)
     clf.fit(X_train, y_train)
     y_pred_test = clf.predict(X_test_final)
     
