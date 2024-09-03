@@ -26,3 +26,8 @@ dvc metrics show
 dvc add dataset.csv
 dvc checkout ## to return the commit 
 ```
+
+```bash
+git checkout HEAD~1 dataset.csv.dvc
+dvc checkout
+```
