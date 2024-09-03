@@ -15,7 +15,10 @@ git push --set-upstream origin main
 git rm -r --cached 'dataset.csv'
 git commit -m "stop tracking dataset.csv"
 git checkout "commit hash"
+<<<<<<< HEAD
 git log --all
+=======
+>>>>>>> 65ee497ab73405621708ac887eb7df30f0e955ab
 ```
 ### DVC Commands
 
@@ -24,6 +27,7 @@ dvc init
 dvc repro
 dvc metrics diff main
 dvc metrics show
+<<<<<<< HEAD
 dvc plots show roc_data.csv -x fpr -y tpr
 dvc params diff 
 dvc params diff 6b242e1
@@ -32,6 +36,15 @@ dvc add dataset.csv
 dvc checkout ## to return the commit 
 
 dvc dag
+=======
+dvc add dataset.csv
+dvc checkout ## to return the commit 
+```
+
+```bash
+git checkout HEAD~1 dataset.csv.dvc
+dvc checkout
+>>>>>>> 65ee497ab73405621708ac887eb7df30f0e955ab
 ```
 ## 
 ```bash
