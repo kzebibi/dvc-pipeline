@@ -4,6 +4,8 @@ stages:
     deps:
       - data_prep.py
       - dataset.csv
+    params:
+      - prepare.age_threshold
     outs:
       - outs/dataset_cleaned.csv
 
@@ -13,6 +15,9 @@ stages:
     deps:
       - data_process.py
       - outs/dataset_cleaned.csv
+    params:
+      - process.test_size
+      - process.seed
     outs:
       - outs/processed_X_train.csv
       - outs/processed_X_test.csv
@@ -27,12 +32,25 @@ stages:
       - outs/processed_X_test.csv
       - outs/processed_y_train.csv
       - outs/processed_y_test.csv
+    params:
+        - train.n_estimators
+        - train.max_depth
     outs:
       - conf_matrix.png
 
     metrics:
       - metrics.json:
           cache: False
+
+plots:
+  - ./conf_matrix.png
+  - ./roc_curve.png
+  - ROC:
+      x: fpr
+      y:
+        roc_data.csv: "tpr\r"
+
+
 
   # evaluate:
   

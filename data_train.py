@@ -2,12 +2,14 @@ import os
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, f1_score, accuracy_score
+from sklearn.metrics import confusion_matrix, f1_score, accuracy_score, roc_curve, auc
 from imblearn.over_sampling import SMOTE
 from sklearn.ensemble import RandomForestClassifier
 from PIL import Image
 import json
 import pandas as pd
+import yaml
+
 
 
 
@@ -48,12 +50,12 @@ X_train_resmapled, y_train_resampled = over.fit_resample(X_train_final, y_train)
 ## --------------------- Modeling ---------------------------- ##
 
 
-def train_model(X_train, y_train, plot_name='', class_weight=None):
+def train_model(X_train, y_train, plot_name, n_estimators, max_depth, class_weight=None):
     """ A function to train model given the required train data """
     
     global clf_name
 
-    clf = RandomForestClassifier(n_estimators=500, max_depth=15, random_state=45, class_weight=class_weight)
+    clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, random_state=45, class_weight=class_weight)
     clf.fit(X_train, y_train)
     y_pred_test = clf.predict(X_test_final)
     
@@ -75,6 +77,28 @@ def train_model(X_train, y_train, plot_name='', class_weight=None):
     plt.close()
 
 
+    ## ----ROC___
+    fpr, tpr, _ = roc_curve(y_test, y_pred_test)
+    roc_auc = auc(fpr, tpr)
+    
+    # Plot ROC curve and save it to a file
+    plt.figure()
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver Operating Characteristic (ROC) Curve')
+    plt.legend(loc="lower right")
+    plt.savefig('roc_curve.png')  # Save ROC curve plot to a file
+    plt.close()  # Close the plot to avoid displaying it
+    
+    
+    ## We can dump these results if we want to plot 
+    pd.DataFrame({'fpr': fpr, 'tpr': tpr}).to_csv('roc_data.csv', index=False)
+    
+    
     new_results= {f"f1-score-{plot_name}": score_test, f"accuracy-score-{plot_name}": acc_test}
 
     ## Save the metrics
@@ -83,63 +107,77 @@ def train_model(X_train, y_train, plot_name='', class_weight=None):
 
     return True
 
+def main():
+    with open("params.yaml")as f:
+        train_params = yaml.safe_load(f)['train']
+    
+    N_ESTIMATORS: int = train_params['n_estimators']
+    MAX_DEPTH: int = train_params['max_depth']
+    
+    
+    
 
-## 1. without considering the imabalancing data
-train_model(X_train=X_train_final, y_train=y_train, plot_name='without-imbalance', class_weight=None)
+    ## 1. without considering the imabalancing data
+    train_model(X_train=X_train_final, y_train=y_train, plot_name='without-imbalance', n_estimators=N_ESTIMATORS, max_depth=MAX_DEPTH, class_weight=None)
 
-## 2. with considering the imabalancing data using class_weights
-train_model(X_train=X_train_final, y_train=y_train, plot_name='with-class-weights', class_weight=dict_weights)
+    ## 2. with considering the imabalancing data using class_weights
+    train_model(X_train=X_train_final, y_train=y_train, plot_name='with-class-weights', n_estimators=N_ESTIMATORS, max_depth=MAX_DEPTH, class_weight=dict_weights)
 
-## 3. with considering the imabalancing data using oversampled data (SMOTE)
-train_model(X_train=X_train_resmapled, y_train=y_train_resampled, plot_name=f'with-SMOTE', class_weight=None)
-
-
-
-## Combine all conf matrix in one
-confusion_matrix_paths = [f'./without-imbalance.png', f'./with-class-weights.png', f'./with-SMOTE.png']
-
-## Load and plot each confusion matrix
-plt.figure(figsize=(15, 5))  # Adjust figure size as needed
-for i, path in enumerate(confusion_matrix_paths, 1):
-    img = Image.open(path)
-    plt.subplot(1, len(confusion_matrix_paths), i)
-    plt.imshow(img)
-    plt.axis('off')  # Disable axis for cleaner visualization
-
-
-## Save combined plot locally
-plt.suptitle(clf_name, fontsize=16)
-plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-plt.savefig(f'conf_matrix.png', bbox_inches='tight', dpi=300)
-
-## Delete old image files
-for path in confusion_matrix_paths:
-    os.remove(path)
+    ## 3. with considering the imabalancing data using oversampled data (SMOTE)
+    train_model(X_train=X_train_resmapled, y_train=y_train_resampled, plot_name=f'with-SMOTE', n_estimators=N_ESTIMATORS, max_depth=MAX_DEPTH, class_weight=None)
 
 
 
-## -----------combine dicts in metrics.json to be one dict----------- ##
+    ## Combine all conf matrix in one
+    confusion_matrix_paths = [f'./without-imbalance.png', f'./with-class-weights.png', f'./with-SMOTE.png']
 
-import json
+    ## Load and plot each confusion matrix
+    plt.figure(figsize=(15, 5))  # Adjust figure size as needed
+    for i, path in enumerate(confusion_matrix_paths, 1):
+        img = Image.open(path)
+        plt.subplot(1, len(confusion_matrix_paths), i)
+        plt.imshow(img)
+        plt.axis('off')  # Disable axis for cleaner visualization
 
-# Read the entire file content
-with open('metrics.json', 'r') as f:
-    metrics_content = f.read()
 
-# Split the content into individual JSON objects and parse them
-json_objects = metrics_content.replace('}{', '}\n{').split('\n')
-combined_metrics = {}
+    ## Save combined plot locally
+    plt.suptitle(clf_name, fontsize=16)
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(f'conf_matrix.png', bbox_inches='tight', dpi=300)
 
-for obj in json_objects:
-    try:
-        metrics = json.loads(obj)
-        combined_metrics.update(metrics)
-    except json.JSONDecodeError as e:
-        print(f"Error parsing JSON object: {e}")
-        print(f"Problematic object: {obj}")
+    ## Delete old image files
+    for path in confusion_matrix_paths:
+        os.remove(path)
 
-# Dump the combined metrics to a new json file
-with open('metrics.json', 'w') as f:
-    json.dump(combined_metrics, f, indent=4)
 
-print(f"Combined metrics saved to 'metrics.json'")
+
+    ## -----------combine dicts in metrics.json to be one dict----------- ##
+
+    import json
+
+    # Read the entire file content
+    with open('metrics.json', 'r') as f:
+        metrics_content = f.read()
+
+    # Split the content into individual JSON objects and parse them
+    json_objects = metrics_content.replace('}{', '}\n{').split('\n')
+    combined_metrics = {}
+
+    for obj in json_objects:
+        try:
+            metrics = json.loads(obj)
+            combined_metrics.update(metrics)
+        except json.JSONDecodeError as e:
+            print(f"Error parsing JSON object: {e}")
+            print(f"Problematic object: {obj}")
+
+    # Dump the combined metrics to a new json file
+    with open('metrics.json', 'w') as f:
+        json.dump(combined_metrics, f, indent=4)
+
+    print(f"Combined metrics saved to 'metrics.json'")
+
+
+
+if __name__ == '__main__':
+    main()

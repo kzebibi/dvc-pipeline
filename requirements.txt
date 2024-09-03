@@ -4,3 +4,4 @@ imblearn
 matplotlib
 seaborn
 dvc
+dvc-gdrive
