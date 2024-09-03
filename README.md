@@ -12,10 +12,17 @@ git commit -m "Initial commit"
 git branch -M main
 git remote add origin https://github.com/kzebibi/dvc-pipeline.git
 git push --set-upstream origin main
+git rm -r --cached 'dataset.csv'
+git commit -m "stop tracking dataset.csv"
+git checkout "commit hash"
 ```
 ### DVC Commands
 
 ```bash
 dvc init
 dvc repro
+dvc metrics diff main
+dvc metrics show
+dvc add dataset.csv
+dvc checkout ## to return the commit 
 ```
